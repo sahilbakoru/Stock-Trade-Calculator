@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Trade Calculator</title>
+    <style>
+        :root {
+            --bg-color: #121b22;
+            --text-color: #d1dbe3;
+            --accent-color: #3b82f6; /* Blue for Calculate */
+            --save-color: #22c55e; /* Green for Save */
+            --delete-color: #dc2626; /* Red for Delete */
+            --export-color: #4b5563; /* Gray for Export */
+            --container-bg: #1f2a3c;
+            --input-border: #4b5e71;
+            --result-bg: #2a3647;
+            --highlight-bg: #374151;
+            --risk-high: #dc2626;
+        }
+        [data-theme="light"] {
+            --bg-color: #f7f9fc;
+            --text-color: #1a2b3c;
+            --accent-color: #1e3a8a;
+            --save-color: #15803d;
+            --delete-color: #b91c1c;
+            --export-color: #6b7280;
+            --container-bg: #ffffff;
+            --input-border: #c4ccd8;
+            --result-bg: #f9fafc;
+            --highlight-bg: #e8f0fe;
+            --risk-high: #b91c1c;
+        }
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+        }
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .input-box, .result-box {
+            background: var(--container-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            flex: 1;
+            min-width: 300px;
+        }
+        .header {
+            text-align: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--input-border);
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 1.6em;
+            font-weight: 700;
+            margin: 0;
+            color: var(--text-color);
+        }
+        .header p {
+            font-size: 0.95em;
+            color: var(--text-color);
+            opacity: 0.7;
+            margin: 5px 0 0;
+        }
+        h2 {
+            text-align: center;
+            color: var(--text-color);
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            font-weight: 600;
+        }
+        label {
+            font-weight: 500;
+            font-size: 1.05em;
+            color: var(--text-color);
+            margin-bottom: 8px;
+            display: block;
+        }
+        .input-group {
+            position: relative;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            font-size: 1em;
+            background: var(--container-bg);
+            color: var(--text-color);
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+        input:hover, select:hover {
+            border-color: var(--accent-color);
+        }
+        input:focus, select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 4px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+        input.valid {
+            border-color: var(--save-color);
+        }
+        input.invalid {
+            border-color: var(--risk-high);
+        }
+        .error-message {
+            color: var(--risk-high);
+            font-size: 0.85em;
+            margin: -10px 0 10px;
+            display: none;
+        }
+        .error-message.active {
+            display: block;
+        }
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        button {
+            flex: 1;
+            padding: 12px;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:disabled {
+            background: #64748b;
+            cursor: not-allowed;
+        }
+        .calculate-btn {
+            background: var(--accent-color);
+        }
+        .calculate-btn:hover:not(:disabled) {
+            background: linear-gradient(90deg, var(--accent-color), #60a5fa);
+        }
+        .save-btn {
+            background: var(--save-color);
+        }
+        .save-btn:hover:not(:disabled) {
+            background: linear-gradient(90deg, var(--save-color), #4ade80);
+        }
+        .delete-btn {
+            background: var(--delete-color);
+        }
+        .delete-btn:hover:not(:disabled) {
+            background: linear-gradient(90deg, var(--delete-color), #ef4444);
+        }
+        .export-btn {
+            background: var(--export-color);
+            flex: 0 1 auto;
+            padding: 8px 16px;
+        }
+        .export-btn:hover:not(:disabled) {
+            background: linear-gradient(90deg, var(--export-color), #6b7280);
+        }
+        #theme-toggle {
+            flex: 0;
+            padding: 10px;
+            background: none;
+            border: 1px solid var(--input-border);
+            font-size: 1.2em;
+            color: var(--text-color);
+        }
+        #theme-toggle:hover {
+            border-color: var(--accent-color);
+        }
+        #preset-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        #preset-actions select, #preset-actions input {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        #preset-actions button {
+            flex: 0.5;
+        }
+        .preset-description {
+            font-size: 0.9em;
+            color: var(--text-color);
+            opacity: 0.7;
+            font-style: italic;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        #result {
+            padding: 15px;
+            background: var(--result-bg);
+            border: 1px solid var(--input-border);
+            border-top: 2px solid var(--accent-color);
+            border-radius: 6px;
+            font-size: 0.95em;
+            animation: fadeIn 0.2s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .result-placeholder {
+            color: var(--text-color);
+            opacity: 0.6;
+            text-align: center;
+            padding: 20px;
+        }
+        .result-summary {
+            background: var(--highlight-bg);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+        }
+        .result-group {
+            margin-bottom: 10px;
+        }
+        .result-group-header {
+            cursor: pointer;
+            padding: 10px;
+            background: var(--container-bg);
+            border-radius: 6px;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .result-group-header:hover {
+            background: var(--highlight-bg);
+        }
+        .result-group-content {
+            display: none;
+            padding: 10px;
+        }
+        .result-group-content.active {
+            display: block;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--input-border);
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .result-item.highlight {
+            background: var(--highlight-bg);
+            font-weight: 600;
+        }
+        .result-item.risk-high span {
+            color: var(--risk-high);
+        }
+        .result-item strong {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        .result-item span {
+            text-align: right;
+        }
+        .risk-icon {
+            margin-left: 5px;
+            font-size: 0.9em;
+        }
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-left: 5px;
+        }
+        .copy-btn:hover {
+            text-decoration: underline;
+        }
+        .copy-all-btn {
+            background: var(--accent-color);
+            display: block;
+            margin: 10px auto 0;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+        .copy-all-btn:hover:not(:disabled) {
+            background: linear-gradient(90deg, var(--accent-color), #60a5fa);
+        }
+        .export-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .legend {
+            font-size: 0.85em;
+            color: var(--text-color);
+            margin-top: 10px;
+            text-align: center;
+        }
+        .error {
+            color: var(--risk-high);
+            font-weight: 500;
+            text-align: center;
+            padding: 10px;
+        }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                max-width: 450px;
+            }
+            .input-box, .result-box {
+                width: 100%;
+                margin-bottom: 20px;
+            }
+            .input-box {
+                margin-bottom: 20px;
+            }
+            .result-box {
+                margin-bottom: 0;
+            }
+            .button-group, #preset-actions, .export-group {
+                flex-direction: column;
+                gap: 8px;
+            }
+            button, #theme-toggle, #preset-actions select, #preset-actions input {
+                flex: none;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body data-theme="dark">
+    <div class="container">
+        <div class="input-box">
+            <div class="header">
+                <h1>Stock Trade Calculator</h1>
+                <p>Plan Your Trades with Precision</p>
+            </div>
+            <h2>Input Parameters</h2>
+            <label for="currency">Currency:</label>
+            <select id="currency" onchange="updateCurrency()">
+                <option value="USD">$ USD</option>
+                <option value="EUR">€ EUR</option>
+                <option value="GBP">£ GBP</option>
+                <option value="INR">₹ INR</option>
+                <option value="BTC">₿ BTC</option>
+                <option value="ETH">Ξ ETH</option>
+               
+            </select>
+            <div class="input-group">
+                <label for="capital">Capital (<span id="currency-symbol">$</span>):</label>
+                <input type="number" id="capital" step="0.01" min="0.01" value="4000" required oninput="validateInputs()">
+                <div class="error-message" id="capital-error">Must be greater than 0</div>
+            </div>
+            <div class="input-group">
+                <label for="stockPrice">Stock Price (<span id="currency-symbol-price">$</span>):</label>
+                <input type="number" id="stockPrice" step="0.01" min="0.01" required oninput="validateInputs()">
+                <div class="error-message" id="stockPrice-error">Must be greater than 0</div>
+            </div>
+            <div class="input-group">
+                <label for="stopLossPercent">Stop Loss (%):</label>
+                <input type="number" id="stopLossPercent" step="0.01" min="0" value="1.1" required oninput="validateInputs()">
+                <div class="error-message" id="stopLossPercent-error">Must be non-negative</div>
+            </div>
+            <div class="input-group">
+                <label for="riskThreshold">Risk Threshold (%):</label>
+                <input type="number" id="riskThreshold" step="0.01" min="0" value="5" required oninput="validateInputs()">
+                <div class="error-message" id="riskThreshold-error">Must be non-negative</div>
+            </div>
+            <label for="leverage">Leverage:</label>
+            <select id="leverage" required>
+                <option value="1">1X</option>
+                <option value="2">2X</option>
+                <option value="3">3X</option>
+                <option value="4">4X</option>
+                <option value="5">5X</option>
+            </select>
+            <div id="preset-actions">
+                <input type="text" id="preset-name" placeholder="Preset Name" aria-label="Preset Name">
+                <select id="preset-select" onchange="loadPreset()">
+                    <option value="">Load Preset</option>
+                </select>
+                <button class="save-btn" onclick="savePreset()">Save</button>
+                <button class="delete-btn" onclick="deletePreset()">Delete</button>
+            </div>
+            <p class="preset-description">Save trade setups to quickly reload your preferred capital, price, stop loss, and leverage settings.</p>
+            <div class="button-group">
+                <button class="calculate-btn" id="calculate-btn" onclick="calculate()" disabled>Calculate</button>
+                <button id="theme-toggle" onclick="toggleTheme()">☀️</button>
+            </div>
+        </div>
+        <div class="result-box">
+            <h2>Trade Results</h2>
+            <div id="result">
+                <div class="result-placeholder">Enter values to see results</div>
+            </div>
+            <div class="export-group">
+                <button class="export-btn" onclick="exportCSV()">Export as CSV</button>
+                <button class="export-btn" onclick="exportPDF()">Export as PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let presets = JSON.parse(localStorage.getItem('presets')) || [];
+        let currency = localStorage.getItem('currency') || 'USD';
+
+        function validateInputs() {
+            const capital = parseFloat(document.getElementById('capital').value);
+            const stockPrice = parseFloat(document.getElementById('stockPrice').value);
+            const stopLossPercent = parseFloat(document.getElementById('stopLossPercent').value);
+            const riskThreshold = parseFloat(document.getElementById('riskThreshold').value);
+            
+            const capitalError = document.getElementById('capital-error');
+            const stockPriceError = document.getElementById('stockPrice-error');
+            const stopLossPercentError = document.getElementById('stopLossPercent-error');
+            const riskThresholdError = document.getElementById('riskThreshold-error');
+            const calculateBtn = document.getElementById('calculate-btn');
+
+            let isValid = true;
+
+            if (isNaN(capital) || capital <= 0) {
+                capitalError.classList.add('active');
+                document.getElementById('capital').classList.add('invalid');
+                document.getElementById('capital').classList.remove('valid');
+                isValid = false;
+            } else {
+                capitalError.classList.remove('active');
+                document.getElementById('capital').classList.remove('invalid');
+                document.getElementById('capital').classList.add('valid');
+            }
+
+            if (isNaN(stockPrice) || stockPrice <= 0) {
+                stockPriceError.classList.add('active');
+                document.getElementById('stockPrice').classList.add('invalid');
+                document.getElementById('stockPrice').classList.remove('valid');
+                isValid = false;
+            } else {
+                stockPriceError.classList.remove('active');
+                document.getElementById('stockPrice').classList.remove('invalid');
+                document.getElementById('stockPrice').classList.add('valid');
+            }
+
+            if (isNaN(stopLossPercent) || stopLossPercent < 0) {
+                stopLossPercentError.classList.add('active');
+                document.getElementById('stopLossPercent').classList.add('invalid');
+                document.getElementById('stopLossPercent').classList.remove('valid');
+                isValid = false;
+            } else {
+                stopLossPercentError.classList.remove('active');
+                document.getElementById('stopLossPercent').classList.remove('invalid');
+                document.getElementById('stopLossPercent').classList.add('valid');
+            }
+
+            if (isNaN(riskThreshold) || riskThreshold < 0) {
+                riskThresholdError.classList.add('active');
+                document.getElementById('riskThreshold').classList.add('invalid');
+                document.getElementById('riskThreshold').classList.remove('valid');
+                isValid = false;
+            } else {
+                riskThresholdError.classList.remove('active');
+                document.getElementById('riskThreshold').classList.remove('invalid');
+                document.getElementById('riskThreshold').classList.add('valid');
+            }
+
+            calculateBtn.disabled = !isValid;
+        }
+
+        function updateCurrency() {
+            currency = document.getElementById('currency').value;
+            localStorage.setItem('currency', currency);
+            const symbols = { USD: '$', EUR: '€', GBP: '£' , INR: '₹', BTC: '₿', ETH: 'Ξ'};
+            document.querySelectorAll('#currency-symbol, #currency-symbol-price').forEach(el => {
+                el.textContent = symbols[currency];
+            });
+            if (!document.getElementById('calculate-btn').disabled) {
+                calculate();
+            }
+        }
+
+        function savePreset() {
+            const name = document.getElementById('preset-name').value.trim();
+            if (!name) {
+                alert('Please enter a preset name');
+                return;
+            }
+            const preset = {
+                name,
+                capital: document.getElementById('capital').value,
+                stockPrice: document.getElementById('stockPrice').value,
+                stopLossPercent: document.getElementById('stopLossPercent').value,
+                riskThreshold: document.getElementById('riskThreshold').value,
+                leverage: document.getElementById('leverage').value,
+                currency: document.getElementById('currency').value
+            };
+            presets = presets.filter(p => p.name !== name);
+            presets.push(preset);
+            localStorage.setItem('presets', JSON.stringify(presets));
+            updatePresetDropdown();
+            document.getElementById('preset-name').value = '';
+            alert('Preset saved!');
+        }
+
+        function loadPreset() {
+            const name = document.getElementById('preset-select').value;
+            if (!name) return;
+            const preset = presets.find(p => p.name === name);
+            if (preset) {
+                document.getElementById('capital').value = preset.capital;
+                document.getElementById('stockPrice').value = preset.stockPrice;
+                document.getElementById('stopLossPercent').value = preset.stopLossPercent;
+                document.getElementById('riskThreshold').value = preset.riskThreshold;
+                document.getElementById('leverage').value = preset.leverage;
+                document.getElementById('currency').value = preset.currency;
+                updateCurrency();
+                validateInputs();
+            }
+        }
+
+        function deletePreset() {
+            const name = document.getElementById('preset-select').value;
+            if (!name) {
+                alert('Please select a preset to delete');
+                return;
+            }
+            if (!confirm(`Are you sure you want to delete the preset "${name}"?`)) {
+                return;
+            }
+            presets = presets.filter(p => p.name !== name);
+            localStorage.setItem('presets', JSON.stringify(presets));
+            updatePresetDropdown();
+            document.getElementById('preset-select').value = '';
+            alert(`Preset "${name}" deleted!`);
+        }
+
+        function updatePresetDropdown() {
+            const select = document.getElementById('preset-select');
+            select.innerHTML = '<option value="">Load Preset</option>';
+            presets.forEach(preset => {
+                const option = document.createElement('option');
+                option.value = preset.name;
+                option.textContent = preset.name;
+                select.appendChild(option);
+            });
+        }
+
+        function calculate() {
+            const capital = parseFloat(document.getElementById('capital').value);
+            const stockPrice = parseFloat(document.getElementById('stockPrice').value);
+            const stopLossPercent = parseFloat(document.getElementById('stopLossPercent').value);
+            const riskThreshold = parseFloat(document.getElementById('riskThreshold').value);
+            const leverage = parseFloat(document.getElementById('leverage').value);
+            const resultDiv = document.getElementById('result');
+            const symbols = { USD: '$', EUR: '€', GBP: '£' 
+                , INR: '₹', BTC: '₿', ETH: 'Ξ'};
+            const symbol = symbols[currency] || '$';
+
+            try {
+                const buyingPower = capital * leverage;
+                const numStocks = Math.floor(buyingPower / stockPrice);
+                const totalCost = (numStocks * stockPrice).toFixed(2);
+                const stopLossLong = (stockPrice * (100 - stopLossPercent) / 100).toFixed(3);
+                const stopLossShort = (stockPrice * (100 + stopLossPercent) / 100).toFixed(3);
+                const lossLong = ((stockPrice - stopLossLong) * numStocks).toFixed(2);
+                const lossShort = ((stopLossShort - stockPrice) * numStocks).toFixed(2);
+                const totalRisk = (parseFloat(lossLong) + parseFloat(lossShort)).toFixed(2);
+                const riskClassLong = lossLong / capital > riskThreshold / 100 ? 'risk-high' : '';
+                const riskClassShort = lossShort / capital > riskThreshold / 100 ? 'risk-high' : '';
+                const riskIconLong = riskClassLong === 'risk-high' ? '<span class="risk-icon">⚠️</span>' : '';
+                const riskIconShort = riskClassShort === 'risk-high' ? '<span class="risk-icon">⚠️</span>' : '';
+
+                resultDiv.innerHTML = `
+                    <div class="result-summary" role="region" aria-label="Trade Summary">
+                        <strong>Stocks to Buy</strong><span>${numStocks}</span>
+                        <strong>Total Risk</strong><span>${symbol}${totalRisk}</span>
+                    </div>
+                    <div class="result-group">
+                        <div class="result-group-header" onclick="toggleGroup(this)" role="button" aria-expanded="true" aria-label="Toggle Trade Details">Trade Details ▼</div>
+                        <div class="result-group-content active">
+                            <div class="result-item"><strong>Capital</strong><span>${symbol}${capital} <button class="copy-btn" onclick="copyToClipboard('${symbol}${capital}')" aria-label="Copy capital">Copy</button></span></div>
+                            <div class="result-item"><strong>Leverage</strong><span>${leverage}X <button class="copy-btn" onclick="copyToClipboard('${leverage}X')" aria-label="Copy leverage">Copy</button></span></div>
+                            <div class="result-item"><strong>Buying Power</strong><span>${symbol}${buyingPower.toFixed(2)} <button class="copy-btn" onclick="copyToClipboard('${symbol}${buyingPower.toFixed(2)}')" aria-label="Copy buying power">Copy</button></span></div>
+                            <div class="result-item highlight"><strong>Stocks to Buy</strong><span>${numStocks} <button class="copy-btn" onclick="copyToClipboard('${numStocks}')" aria-label="Copy stocks to buy">Copy</button></span></div>
+                            <div class="result-item"><strong>Total Cost</strong><span>${symbol}${totalCost} <button class="copy-btn" onclick="copyToClipboard('${symbol}${totalCost}')" aria-label="Copy total cost">Copy</button></span></div>
+                        </div>
+                    </div>
+                    <div class="result-group">
+                        <div class="result-group-header" onclick="toggleGroup(this)" role="button" aria-expanded="true" aria-label="Toggle Risk Metrics">Risk Metrics ▼</div>
+                        <div class="result-group-content active">
+                            <div class="result-item highlight"><strong>Stop Loss (Long)</strong><span>${symbol}${stopLossLong} <button class="copy-btn" onclick="copyToClipboard('${symbol}${stopLossLong}')" aria-label="Copy stop loss long">Copy</button></span></div>
+                            <div class="result-item highlight"><strong>Stop Loss (Short)</strong><span>${symbol}${stopLossShort} <button class="copy-btn" onclick="copyToClipboard('${symbol}${stopLossShort}')" aria-label="Copy stop loss short">Copy</button></span></div>
+                            <div class="result-item highlight risk-high"><strong>Loss at Long Stop</strong><span>${symbol}${lossLong}${riskIconLong} <button class="copy-btn" onclick="copyToClipboard('${symbol}${lossLong}')" aria-label="Copy loss at long stop">Copy</button></span></div>
+                            <div class="result-item highlight risk-high"><strong>Loss at Short Stop</strong><span>${symbol}${lossShort}${riskIconShort} <button class="copy-btn" onclick="copyToClipboard('${symbol}${lossShort}')" aria-label="Copy loss at short stop">Copy</button></span></div>
+                        </div>
+                    </div>
+                    <button class="copy-all-btn" onclick="copyAllResults()" aria-label="Copy all results">Copy All Results</button>
+                    <div class="legend">Losses are in <span style="color: var(--risk-high)">red</span>, with ⚠️ for high risk (>${riskThreshold}% of capital)</div>
+                `;
+            } catch (error) {
+                console.error('Calculation error:', error);
+                resultDiv.innerHTML = '<p class="error">Error calculating results. Please check inputs and try again.</p>';
+            }
+        }
+
+        function toggleGroup(header) {
+            const content = header.nextElementSibling;
+            content.classList.toggle('active');
+            const isExpanded = content.classList.contains('active');
+            header.setAttribute('aria-expanded', isExpanded);
+            header.textContent = header.textContent.replace(isExpanded ? '▲' : '▼', isExpanded ? '▼' : '▲');
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard: ' + text);
+            });
+        }
+
+        function copyAllResults() {
+            const results = document.querySelectorAll('.result-item');
+            let text = '';
+            results.forEach(item => {
+                const label = item.querySelector('strong').textContent;
+                const value = item.querySelector('span').textContent.split(' ')[0];
+                text += `${label}: ${value}\n`;
+            });
+            navigator.clipboard.writeText(text).then(() => {
+                alert('All results copied to clipboard!');
+            });
+        }
+
+        function exportCSV() {
+            const capital = document.getElementById('capital').value;
+            const stockPrice = document.getElementById('stockPrice').value;
+            const stopLossPercent = document.getElementById('stopLossPercent').value;
+            const riskThreshold = document.getElementById('riskThreshold').value;
+            const leverage = document.getElementById('leverage').value;
+            const symbol = { USD: '$', EUR: '€', GBP: '£' 
+                , INR: '₹', BTC: '₿', ETH: 'Ξ'
+          
+          }[currency] || '$';
+            const buyingPower = (capital * leverage).toFixed(2);
+            const numStocks = Math.floor(buyingPower / stockPrice);
+            const totalCost = (numStocks * stockPrice).toFixed(2);
+            const stopLossLong = (stockPrice * (100 - stopLossPercent) / 100).toFixed(3);
+            const stopLossShort = (stockPrice * (100 + stopLossPercent) / 100).toFixed(3);
+            const lossLong = ((stockPrice - stopLossLong) * numStocks).toFixed(2);
+            const lossShort = ((stopLossShort - stockPrice) * numStocks).toFixed(2);
+            const totalRisk = (parseFloat(lossLong) + parseFloat(lossShort)).toFixed(2);
+
+            const csv = [
+                ['Parameter', 'Value'],
+                ['Capital', `${symbol}${capital}`],
+                ['Stock Price', `${symbol}${stockPrice}`],
+                ['Stop Loss (%)', stopLossPercent],
+                ['Risk Threshold (%)', riskThreshold],
+                ['Leverage', `${leverage}X`],
+                ['Buying Power', `${symbol}${buyingPower}`],
+                ['Stocks to Buy', numStocks],
+                ['Total Cost', `${symbol}${totalCost}`],
+                ['Stop Loss (Long)', `${symbol}${stopLossLong}`],
+                ['Stop Loss (Short)', `${symbol}${stopLossShort}`],
+                ['Loss at Long Stop', `${symbol}${lossLong}`],
+                ['Loss at Short Stop', `${symbol}${lossShort}`],
+                ['Total Risk', `${symbol}${totalRisk}`]
+            ].map(row => row.join(',')).join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'trade_results.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(16);
+            doc.text('Stock Trade Calculator Results', 20, 20);
+            doc.setFontSize(12);
+            const capital = document.getElementById('capital').value;
+            const stockPrice = document.getElementById('stockPrice').value;
+            const stopLossPercent = document.getElementById('stopLossPercent').value;
+            const riskThreshold = document.getElementById('riskThreshold').value;
+            const leverage = document.getElementById('leverage').value;
+            const symbol = { USD: '$', EUR: '€', GBP: '£' ,INR: '₹', BTC: '₿', ETH: 'Ξ'}[currency] || '$';
+            const buyingPower = (capital * leverage).toFixed(2);
+            const numStocks = Math.floor(buyingPower / stockPrice);
+            const totalCost = (numStocks * stockPrice).toFixed(2);
+            const stopLossLong = (stockPrice * (100 - stopLossPercent) / 100).toFixed(3);
+            const stopLossShort = (stockPrice * (100 + stopLossPercent) / 100).toFixed(3);
+            const lossLong = ((stockPrice - stopLossLong) * numStocks).toFixed(2);
+            const lossShort = ((stopLossShort - stockPrice) * numStocks).toFixed(2);
+            const totalRisk = (parseFloat(lossLong) + parseFloat(lossShort)).toFixed(2);
+
+            const data = [
+                `Capital: ${symbol}${capital}`,
+                `Stock Price: ${symbol}${stockPrice}`,
+                `Stop Loss: ${stopLossPercent}%`,
+                `Risk Threshold: ${riskThreshold}%`,
+                `Leverage: ${leverage}X`,
+                `Buying Power: ${symbol}${buyingPower}`,
+                `Stocks to Buy: ${numStocks}`,
+                `Total Cost: ${symbol}${totalCost}`,
+                `Stop Loss (Long): ${symbol}${stopLossLong}`,
+                `Stop Loss (Short): ${symbol}${stopLossShort}`,
+                `Loss at Long Stop: ${symbol}${lossLong}`,
+                `Loss at Short Stop: ${symbol}${lossShort}`,
+                `Total Risk: ${symbol}${totalRisk}`
+            ];
+
+            data.forEach((line, index) => {
+                doc.text(line, 20, 30 + index * 10);
+            });
+
+            doc.save('trade_results.pdf');
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme') || 'dark';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            document.getElementById('theme-toggle').textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.body.setAttribute('data-theme', savedTheme);
+            document.getElementById('theme-toggle').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+            document.getElementById('currency').value = currency;
+            updateCurrency();
+            updatePresetDropdown();
+            validateInputs();
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !document.getElementById('calculate-btn').disabled) {
+                    calculate();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
