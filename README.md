@@ -26,7 +26,7 @@ Dependency: jsPDF (via CDN) for PDF exports
 No backend required: Runs locally in the browser
 
 ### Installation
-**Clone the repository**: git clone https://github.com/your-username/Stock-Trade-Calculator.git
+**Clone the repository**: git clone https://github.com/sahilbakoru/Stock-Trade-Calculator.git
 
 **Navigate to the project directory**: cd Stock-Trade-Calculator
 
