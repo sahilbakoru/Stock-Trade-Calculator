@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Stock Trade Calculator</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      display: flex;
+      justify-content: center;
+      align-items: start;
+      min-height: 100vh;
+      padding: 20px 20px;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      max-width: 100%;
+      width: 100%;
+    }
+
+    .box {
+      background: #1e293b;
+      padding: 24px;
+      border-radius: 10px;
+      flex: 1;
+      min-width: 300px;
+    }
+.highlight {
+  border: 2px solid #facc15; /* Yellow border */
+  background: #1e1b04;       /* Subtle yellow tint */
+  box-shadow: 0 0 5px #facc15;
+}
+    h2 {
+      margin-top: 0;
+      font-size: 1.4em;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 10px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      border-radius: 5px;
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+
+    input:focus, select:focus {
+      border-color: #3b82f6;
+      outline: none;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 15px;
+      background: #3b82f6;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.95em;
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    button:hover {
+      background: #2563eb;
+    }
+
+    .result-group {
+      margin-top: 15px;
+      padding: 12px;
+      background: #334155;
+      border-radius: 6px;
+    }
+
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .result-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .trade-history {
+      margin-top: 10px;
+      font-size: 0.95em;
+      background: #334155;
+      padding: 10px;
+      border-radius: 6px;
+    }
+
+    .trade-history span {
+      margin-right: 6px;
+      font-weight: bold;
+    }
+
+    .green {
+      color: #22c55e;
+    }
+
+    .red {
+      color: #ef4444;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="box">
+      <h2>Input</h2>
+      <label for="capital">Capital (₹):</label>
+      <input type="number" id="capital" min="0.01" value="4000" required />
+
+      <label for="stockPrice">Stock Price (₹):</label>
+      <input type="number" id="stockPrice" class="highlight" min="0.01" required />
+
+      <label for="stopLossPercent">Stop Loss (%):</label>
+      <input type="number" id="stopLossPercent" min="0.01" value="1" />
+
+      <label for="leverage">Leverage:</label>
+      <select id="leverage">
+        <option value="1">1x</option>
+        <option value="2">2x</option>
+        <option value="3">3x</option>
+        <option value="4">4x</option>
+        <option value="5">5x</option>
+      </select>
+
+      <button onclick="calculate()">Calculate</button>
+    </div>
+
+    <div class="box">
+      <h2>Results</h2>
+      <div id="results">
+        <p>Enter values and click calculate.</p>
+      </div>
+    </div>
+
+    <div class="box">
+      <h2>Trade Tracker</h2>
+      <div>
+        <button onclick="recordTrade('profit')">+ Record Profit</button>
+        <button onclick="recordTrade('loss')">- Record Loss</button>
+        <button onclick="resetTracker()">Reset</button>
+      </div>
+      <div class="trade-history" id="tradeHistoryDisplay">
+        No trades yet.
+      </div>
+    </div>
+    <!-- <iframe src="https://trading-strategy-simulator.netlify.app/" width="100%" height="500px"></iframe> -->
+  </div>
+
+<script>
+  const MAX_LEVERAGE = 5;
+  let trades = [];
+
+  function loadTradeData() {
+    const stored = localStorage.getItem("tradeHistory");
+    trades = stored ? JSON.parse(stored) : [];
+
+    const savedLeverage = localStorage.getItem("currentLeverage");
+    if (savedLeverage) {
+      setLeverage(parseInt(savedLeverage));
+    } else {
+      setLeverage(1);
+    }
+
+    updateTradeUI();
+  }
+
+  function saveTradeData() {
+    localStorage.setItem("tradeHistory", JSON.stringify(trades));
+    localStorage.setItem("currentLeverage", currentLeverage);
+  }
+
+  function recordTrade(type) {
+    if (type === "profit") {
+      trades.push("+");
+      trades = trades.slice(-5); // Keep last 5 trades
+      setLeverage(1); // Reset
+    } else if (type === "loss") {
+      trades.push("-");
+      trades = trades.slice(-5);
+      const lossCount = trades.slice().reverse().findIndex(t => t === "+");
+      const newLev = Math.min(1 + (lossCount === -1 ? trades.length : lossCount), MAX_LEVERAGE);
+      setLeverage(newLev);
+    }
+    saveTradeData();
+    updateTradeUI();
+  }
+
+  function resetTracker() {
+    trades = [];
+    setLeverage(1);
+    localStorage.removeItem("tradeHistory");
+    localStorage.removeItem("currentLeverage");
+    updateTradeUI();
+  }
+
+  let currentLeverage = 1;
+
+  function setLeverage(x) {
+    currentLeverage = x;
+    const levSelect = document.getElementById("leverage");
+    levSelect.value = x.toString();
+    localStorage.setItem("currentLeverage", x);
+  }
+
+  function updateTradeUI() {
+    const historyDiv = document.getElementById("tradeHistoryDisplay");
+    if (trades.length === 0) {
+      historyDiv.innerHTML = "No trades yet.";
+      return;
+    }
+
+    const currentLev = document.getElementById("leverage").value;
+    const symbols = trades.map(t => {
+      return `<span class="${t === '+' ? 'green' : 'red'}">${t}</span>`;
+    }).join('');
+
+    historyDiv.innerHTML = `
+      <div><strong>Last Trades:</strong> ${symbols}</div>
+      <div style="margin-top:8px;"><strong>Current Leverage:</strong> ${currentLev}x</div>
+    `;
+  }
+
+  function calculate() {
+    const capital = parseFloat(document.getElementById('capital').value);
+    const price = parseFloat(document.getElementById('stockPrice').value);
+    const stopLoss = parseFloat(document.getElementById('stopLossPercent').value);
+    const leverage = parseFloat(document.getElementById('leverage').value);
+    const resultsDiv = document.getElementById('results');
+
+    if (isNaN(capital) || isNaN(price) || capital <= 0 || price <= 0) {
+      resultsDiv.innerHTML = "<p>Please enter valid capital and stock price.</p>";
+      return;
+    }
+
+    const buyingPower = capital * leverage;
+    const shares = Math.floor(buyingPower / price);
+    const cost = (shares * price).toFixed(2);
+    const stopLossLong = (price * (1 - stopLoss / 100)).toFixed(2);
+    const stopLossShort = (price * (1 + stopLoss / 100)).toFixed(2);
+    const lossLong = ((price - stopLossLong) * shares).toFixed(2);
+    const lossShort = ((stopLossShort - price) * shares).toFixed(2);
+
+    resultsDiv.innerHTML = `
+      <div class="result-group">
+        <div class="result-item"><strong>Shares to Buy:</strong><span>${shares}</span></div>
+        <div class="result-item"><strong>Total Cost:</strong><span>₹${cost}</span></div>
+        <div class="result-item"><strong>Buying Power:</strong><span>₹${buyingPower.toFixed(2)}</span></div>
+      </div>
+      <div class="result-group">
+        <div class="result-item"><strong>Stop Loss (Long):</strong><span>₹${stopLossLong}</span></div>
+        <div class="result-item"><strong>Loss at Long Stop:</strong><span>₹${lossLong}</span></div>
+        <div class="result-item"><strong>Stop Loss (Short):</strong><span>₹${stopLossShort}</span></div>
+        <div class="result-item"><strong>Loss at Short Stop:</strong><span>₹${lossShort}</span></div>
+      </div>
+    `;
+  }
+
+  // Load on start
+  loadTradeData();
+</script>
+
+</body>
+</html>
