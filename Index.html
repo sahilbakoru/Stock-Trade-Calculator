@@ -82,6 +82,18 @@
     button:hover {
       background: #2563eb;
     }
+    .profitColor {
+      background: #22c55e; /* Green for profit */
+    }
+    .profitColor:hover {
+      background: #16a34a; /* Darker green on hover */
+    }
+    .lossColor {
+      background: #ef4444; /* Red for loss */
+    }
+    .lossColor:hover {
+      background: #dc2626; /* Darker red on hover */
+    } 
 
     .result-group {
       margin-top: 15px;
@@ -163,8 +175,8 @@
     <div class="box">
       <h2>Trade Tracker</h2>
       <div>
-        <button onclick="recordTrade('profit')">+ Record Profit</button>
-        <button onclick="recordTrade('loss')">- Record Loss</button>
+        <button onclick="recordTrade('profit')" class="profitColor">+ Record Profit</button>
+        <button onclick="recordTrade('loss')" class="lossColor">- Record Loss</button>
         <button onclick="resetTracker()">Reset</button>
       </div>
       <div class="trade-history" id="tradeHistoryDisplay">
