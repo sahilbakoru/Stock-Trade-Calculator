@@ -277,6 +277,7 @@
     const shares = Math.floor(buyingPower / price);
     const cost = (shares * price).toFixed(2);
     const stopLossLong = (price * (1 - stopLoss / 100)).toFixed(2);
+   const  targetAtLong = (price * (1 + 2* stopLoss / 100)).toFixed(2);
     const stopLossShort = (price * (1 + stopLoss / 100)).toFixed(2);
     const lossLong = ((price - stopLossLong) * shares).toFixed(2);
     const lossShort = ((stopLossShort - price) * shares).toFixed(2);
@@ -289,6 +290,11 @@
       </div>
       <div class="result-group">
         <div class="result-item"><strong>Stop Loss (Long):</strong><span>₹${stopLossLong}</span></div>
+        <div class="result-item"><strong>Target for 50% (Long):</strong><span>₹${targetAtLong}</span></div>
+<br/>
+        <hr/>
+        <br/>
+           
         <div class="result-item"><strong>Loss at Long Stop:</strong><span>₹${lossLong}</span></div>
         <div class="result-item"><strong>Stop Loss (Short):</strong><span>₹${stopLossShort}</span></div>
         <div class="result-item"><strong>Loss at Short Stop:</strong><span>₹${lossShort}</span></div>
