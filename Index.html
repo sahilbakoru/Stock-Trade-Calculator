@@ -275,6 +275,8 @@
 
     const buyingPower = capital * leverage;
     const shares = Math.floor(buyingPower / price);
+    const half1 = Math.ceil(shares / 2);
+    const half2 = Math.floor(shares / 2);
     const cost = (shares * price).toFixed(2);
     const stopLossLong = (price * (1 - stopLoss / 100)).toFixed(2);
    const  targetAtLong = (price * (1 + 2* stopLoss / 100)).toFixed(2);
@@ -291,6 +293,11 @@
       <div class="result-group">
         <div class="result-item"><strong>Stop Loss (Long):</strong><span>₹${stopLossLong}</span></div>
         <div class="result-item"><strong>Target for 50% (Long):</strong><span>₹${targetAtLong}</span></div>
+        <div class="result-item">
+  <strong>Split Shares (50% Exit):</strong>
+  <span>${half1} + ${half2}</span>
+</div>
+
 <br/>
         <hr/>
         <br/>
