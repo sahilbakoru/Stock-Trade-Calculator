@@ -1,317 +1,774 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Stock Trade Calculator</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0f172a;
-      color: #e2e8f0;
-      display: flex;
-      justify-content: center;
-      align-items: start;
-      min-height: 100vh;
-      padding: 20px 20px;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stock Trade Calculator</title>
+    <style>
+        /* ── Reset & Base ── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    .container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      max-width: 100%;
-      width: 100%;
-    }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #111;
+            color: #d0d0d0;
+            min-height: 100vh;
+            padding: 30px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
 
-    .box {
-      background: #1e293b;
-      padding: 24px;
-      border-radius: 10px;
-      flex: 1;
-      min-width: 300px;
-    }
-.highlight {
-  border: 2px solid #facc15; /* Yellow border */
-  background: #1e1b04;       /* Subtle yellow tint */
-  box-shadow: 0 0 5px #facc15;
-}
-    h2 {
-      margin-top: 0;
-      font-size: 1.4em;
-      border-bottom: 1px solid #334155;
-      padding-bottom: 10px;
-    }
+        .app-wrapper {
+            max-width: 1300px;
+            width: 100%;
+        }
 
-    label {
-      display: block;
-      margin-top: 15px;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
+        /* ── Grid ── */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 24px;
+        }
 
-    input, select {
-      width: 100%;
-      padding: 10px;
-      font-size: 1em;
-      border-radius: 5px;
-      border: 1px solid #475569;
-      background: #0f172a;
-      color: #e2e8f0;
-    }
+        /* ── Cards ── */
+        .card {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 22px 24px;
+            transition: border-color 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
 
-    input:focus, select:focus {
-      border-color: #3b82f6;
-      outline: none;
-    }
+        .card:hover {
+            border-color: #3a3a3a;
+        }
 
-    button {
-      margin-top: 15px;
-      padding: 10px 15px;
-      background: #3b82f6;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.95em;
-      font-weight: bold;
-      color: white;
-      cursor: pointer;
-      margin-right: 10px;
-    }
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #2a2a2a;
+        }
 
-    button:hover {
-      background: #2563eb;
-    }
-    .profitColor {
-      background: #22c55e; /* Green for profit */
-    }
-    .profitColor:hover {
-      background: #16a34a; /* Darker green on hover */
-    }
-    .lossColor {
-      background: #ef4444; /* Red for loss */
-    }
-    .lossColor:hover {
-      background: #dc2626; /* Darker red on hover */
-    } 
+        .card-header h2 {
+            font-size: 1.05rem;
+            font-weight: 500;
+            color: #e8e8e8;
+            letter-spacing: -0.1px;
+        }
 
-    .result-group {
-      margin-top: 15px;
-      padding: 12px;
-      background: #334155;
-      border-radius: 6px;
-    }
+        /* ── Form ── */
+        .form-group {
+            margin-bottom: 16px;
+        }
 
-    .result-item {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #aaa;
+            margin-bottom: 4px;
+        }
 
-    .result-item:last-child {
-      margin-bottom: 0;
-    }
+        .form-group label .label-icon {
+            width: 16px;
+            height: 16px;
+            fill: #888;
+        }
 
-    .trade-history {
-      margin-top: 10px;
-      font-size: 0.95em;
-      background: #334155;
-      padding: 10px;
-      border-radius: 6px;
-    }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 0.95rem;
+            font-weight: 400;
+            background: #222;
+            border: none;
+            border-bottom: 1px solid #333;
+            color: #e0e0e0;
+            border-radius: 0;
+            transition: border-color 0.2s, background 0.2s;
+            font-family: inherit;
+            appearance: none;
+            -webkit-appearance: none;
+        }
 
-    .trade-history span {
-      margin-right: 6px;
-      font-weight: bold;
-    }
+        .form-group textarea {
+            border: 1px solid #333;
+            border-radius: 4px;
+            resize: vertical;
+            min-height: 80px;
+            background: #1a1a1a;
+        }
 
-    .green {
-      color: #22c55e;
-    }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-bottom-color: #777;
+            background: #282828;
+        }
 
-    .red {
-      color: #ef4444;
-    }
+        .form-group textarea:focus {
+            border-color: #777;
+            background: #222;
+        }
 
-    @media (max-width: 768px) {
-      .container {
-        flex-direction: column;
-      }
-    }
-  </style>
+        .form-group input::placeholder {
+            color: #666;
+            font-weight: 300;
+        }
+
+        .form-group select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23888888' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+            cursor: pointer;
+        }
+
+        .form-group select option {
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+
+        /* ── Buttons ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 9px 18px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 1px solid #444;
+            border-radius: 6px;
+            background: transparent;
+            color: #d0d0d0;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+            font-family: inherit;
+            letter-spacing: 0.2px;
+        }
+
+        .btn:hover {
+            background: #2a2a2a;
+            border-color: #666;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary {
+            border-color: #555;
+            color: #eee;
+        }
+
+        .btn-primary:hover {
+            border-color: #888;
+            background: #2a2a2a;
+        }
+
+        .btn-success {
+            border-color: #2a5a3a;
+            color: #8bc9a0;
+        }
+
+        .btn-success:hover {
+            border-color: #3a7a4a;
+            background: #1e2a1e;
+        }
+
+        .btn-danger {
+            border-color: #5a2a2a;
+            color: #c98b8b;
+        }
+
+        .btn-danger:hover {
+            border-color: #7a3a3a;
+            background: #2a1e1e;
+        }
+
+        .btn-outline {
+            border-color: #333;
+            color: #999;
+        }
+
+        .btn-outline:hover {
+            border-color: #555;
+            background: #222;
+            color: #ccc;
+        }
+
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+            margin-top: 6px;
+            padding: 10px;
+            border-color: #444;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .btn-clear {
+            padding: 2px 12px;
+            font-size: 0.75rem;
+            border-color: #333;
+            color: #777;
+        }
+
+        .btn-clear:hover {
+            border-color: #555;
+            color: #aaa;
+        }
+
+        /* ── Results ── */
+        .result-group {
+            background: #151515;
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            border: 1px solid #282828;
+        }
+
+        .result-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            font-size: 0.9rem;
+        }
+
+        .result-item strong {
+            font-weight: 500;
+            color: #bbb;
+        }
+
+        .result-item .value {
+            font-weight: 500;
+            color: #e8e8e8;
+        }
+
+        .result-item .value.green {
+            color: #8bc9a0;
+        }
+
+        .result-item .value.red {
+            color: #c98b8b;
+        }
+
+        .result-divider {
+            border: none;
+            border-top: 1px solid #2a2a2a;
+            margin: 10px 0;
+        }
+
+        .result-empty {
+            color: #666;
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 20px 0 10px;
+        }
+
+        /* ── Trade History ── */
+        .trade-history {
+            background: #151515;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-top: 14px;
+            border: 1px solid #282828;
+            min-height: 60px;
+        }
+
+        .trade-history .empty {
+            color: #666;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 0.9rem;
+        }
+
+        .trade-entries-container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px 10px;
+            min-height: 32px;
+            padding: 2px 0;
+        }
+
+        .trade-entry {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #1e1e1e;
+            border: 1px solid #2a2a2a;
+            border-radius: 16px;
+            padding: 2px 12px 2px 8px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .trade-entry .symbol {
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .trade-entry .symbol.profit {
+            color: #8bc9a0;
+        }
+
+        .trade-entry .symbol.loss {
+            color: #c98b8b;
+        }
+
+        .trade-entry .note-text {
+            color: #888;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .trade-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #282828;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .trade-meta .lev-badge {
+            background: #222;
+            padding: 2px 12px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            font-weight: 400;
+            color: #aaa;
+        }
+
+        .trade-count {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 8px;
+            text-align: right;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 1024px) {
+            .grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            body {
+                padding: 16px;
+            }
+
+            .card {
+                padding: 18px;
+            }
+
+            .btn-group .btn {
+                flex: 1 1 auto;
+                min-width: 60px;
+            }
+
+            .trade-entry .note-text {
+                max-width: 80px;
+            }
+        }
+
+        /* ── Helpers ── */
+        .mt-1 {
+            margin-top: 6px;
+        }
+        .text-muted {
+            color: #666;
+            font-size: 0.75rem;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .gap-1 {
+            gap: 6px;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="box">
-      <h2>Input</h2>
-      <label for="capital">Capital (₹):</label>
-      <input type="number" id="capital" min="0.01" value="4000" required />
 
-      <label for="stockPrice">Stock Price (₹):</label>
-      <input type="number" id="stockPrice" class="highlight" min="0.01" required />
+    <div class="app-wrapper">
 
-      <label for="stopLossPercent">Stop Loss (%):</label>
-      <input type="number" id="stopLossPercent" min="0.01" value="1" />
+        <!-- Grid -->
+        <div class="grid">
 
-      <label for="leverage">Leverage:</label>
-      <select id="leverage">
-        <option value="1">1x</option>
-        <option value="2">2x</option>
-        <option value="3">3x</option>
-        <option value="4">4x</option>
-        <option value="5">5x</option>
-      </select>
+            <!-- ─── INPUT CARD ─── -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Input</h2>
+                </div>
 
-      <button onclick="calculate()">Calculate</button>
-    </div>
+                <div class="form-group">
+                    <label>
+                        <svg class="label-icon" viewBox="0 0 24 24">
+                            <path d="M11.5 1L2 6v2l9.5 5 9.5-5V6l-9.5-5zm0 11.5L4 8.5v3.5l7.5 3.75L19 12V8.5l-7.5 4z"/>
+                            <path d="M4 13.5v3.5l7.5 3.75L19 17v-3.5l-7.5 3.75L4 13.5z"/>
+                        </svg>
+                        Capital (₹)
+                    </label>
+                    <input type="number" id="capital" min="0.01" value="10000" step="100" required />
+                </div>
 
-    <div class="box">
-      <h2>Results</h2>
-      <div id="results">
-        <p>Enter values and click calculate.</p>
-      </div>
-    </div>
+                <div class="form-group">
+                    <label>
+                        <svg class="label-icon" viewBox="0 0 24 24">
+                            <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
+                        </svg>
+                        Stock Price (₹)
+                    </label>
+                    <input type="number" id="stockPrice" min="0.01" step="0.05" placeholder="e.g. 150.50" />
+                </div>
 
-    <div class="box">
-      <h2>Trade Tracker</h2>
-      <div>
-        <button onclick="recordTrade('profit')" class="profitColor">+ Record Profit</button>
-        <button onclick="recordTrade('loss')" class="lossColor">- Record Loss</button>
-        <button onclick="resetTracker()">Reset</button>
-      </div>
-      <div class="trade-history" id="tradeHistoryDisplay">
-        No trades yet.
-      </div>
-    </div>
-    
-    <!-- <iframe src="https://trading-strategy-simulator.netlify.app/" width="100%" height="500px"></iframe> -->
-  </div>
+                <div class="form-group">
+                    <label>
+                        <svg class="label-icon" viewBox="0 0 24 24">
+                            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5L12 1zm0 2.18l7 2.82v5.82c0 4.42-2.95 8.46-7 9.82-4.05-1.36-7-5.4-7-9.82V5.82l7-2.82z"/>
+                        </svg>
+                        Stop Loss (%)
+                    </label>
+                    <input type="number" id="stopLossPercent" min="0.01" value="1" step="0.1" />
+                </div>
 
-<script>
-  const MAX_LEVERAGE = 5;
-  let trades = [];
+                <div class="form-group">
+                    <label>
+                        <svg class="label-icon" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 9c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/>
+                        </svg>
+                        Target (%)
+                    </label>
+                    <input type="number" id="targetPercent" min="0.01" value="1" step="0.1" />
+                </div>
 
-  function loadTradeData() {
-    const stored = localStorage.getItem("tradeHistory");
-    trades = stored ? JSON.parse(stored) : [];
+                <div class="form-group">
+                    <label>
+                        <svg class="label-icon" viewBox="0 0 24 24">
+                            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+                        </svg>
+                        Leverage
+                    </label>
+                    <select id="leverage">
+                        <option value="1">1x</option>
+                        <option value="2">2x</option>
+                        <option value="3">3x</option>
+                        <option value="4">4x</option>
+                        <option value="5" selected>5x</option>
+                    </select>
+                </div>
 
-    const savedLeverage = localStorage.getItem("currentLeverage");
-    if (savedLeverage) {
-      setLeverage(parseInt(savedLeverage));
-    } else {
-      setLeverage(1);
-    }
+                <button class="btn btn-primary btn-block" onclick="calculate()">Calculate</button>
+            </div>
 
-    updateTradeUI();
-  }
+            <!-- ─── RESULTS CARD ─── -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Results</h2>
+                    <button class="btn btn-outline btn-clear" onclick="clearResults()">Clear</button>
+                </div>
+                <div id="results">
+                    <div class="result-empty">Enter values and click <strong>Calculate</strong>.</div>
+                </div>
+            </div>
 
-  function saveTradeData() {
-    localStorage.setItem("tradeHistory", JSON.stringify(trades));
-    localStorage.setItem("currentLeverage", currentLeverage);
-  }
+            <!-- ─── TRADE TRACKER CARD ─── -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Trade Tracker</h2>
+                </div>
 
-  function recordTrade(type) {
-    if (type === "profit") {
-      trades.push("+");
-      trades = trades.slice(-5); // Keep last 5 trades
-      setLeverage(1); // Reset
-    } else if (type === "loss") {
-      trades.push("-");
-      trades = trades.slice(-5);
-      const lossCount = trades.slice().reverse().findIndex(t => t === "+");
-      const newLev = Math.min(1 + (lossCount === -1 ? trades.length : lossCount), MAX_LEVERAGE);
-      setLeverage(newLev);
-    }
-    saveTradeData();
-    updateTradeUI();
-  }
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="recordTrade('profit')">+ Profit</button>
+                    <button class="btn btn-danger" onclick="recordTrade('loss')">− Loss</button>
+                    <button class="btn btn-outline" onclick="resetTracker()">↻ Reset</button>
+                </div>
 
-  function resetTracker() {
-    trades = [];
-    setLeverage(1);
-    localStorage.removeItem("tradeHistory");
-    localStorage.removeItem("currentLeverage");
-    updateTradeUI();
-  }
+                <div class="form-group" style="margin-top:12px; flex: 1;">
+                    <label for="tradeNote">Notes for this trade</label>
+                    <textarea id="tradeNote" rows="11" placeholder="Reasoning, sentiment, etc."></textarea>
+                </div>
 
-  let currentLeverage = 1;
+                <div class="trade-history" id="tradeHistoryDisplay">
+                    <div class="empty">No trades yet.</div>
+                </div>
+                <div class="trade-count" id="tradeCount">0 recorded</div>
+            </div>
 
-  function setLeverage(x) {
-    currentLeverage = x;
-    const levSelect = document.getElementById("leverage");
-    levSelect.value = x.toString();
-    localStorage.setItem("currentLeverage", x);
-  }
+        </div><!-- /grid -->
+    </div><!-- /app-wrapper -->
 
-  function updateTradeUI() {
-    const historyDiv = document.getElementById("tradeHistoryDisplay");
-    if (trades.length === 0) {
-      historyDiv.innerHTML = "No trades yet.";
-      return;
-    }
+    <script>
+        // ─── State ───
+        let trades = []; // array of {symbol: '+' or '−', note: string}
+        const MAX_TRADES = 5;
 
-    const currentLev = document.getElementById("leverage").value;
-    const symbols = trades.map(t => {
-      return `<span class="${t === '+' ? 'green' : 'red'}">${t}</span>`;
-    }).join('');
+        // ─── DOM refs ───
+        const capitalInput = document.getElementById('capital');
+        const priceInput = document.getElementById('stockPrice');
+        const slInput = document.getElementById('stopLossPercent');
+        const targetInput = document.getElementById('targetPercent');
+        const leverageSelect = document.getElementById('leverage');
+        const resultsDiv = document.getElementById('results');
+        const historyDiv = document.getElementById('tradeHistoryDisplay');
+        const tradeCountSpan = document.getElementById('tradeCount');
+        const noteInput = document.getElementById('tradeNote');
 
-    historyDiv.innerHTML = `
-      <div><strong>Last Trades:</strong> ${symbols}</div>
-      <div style="margin-top:8px;"><strong>Current Leverage:</strong> ${currentLev}x</div>
-    `;
-  }
+        // ─── Load from localStorage ───
+        function loadData() {
+            const stored = localStorage.getItem('tradeHistory');
+            trades = stored ? JSON.parse(stored) : [];
 
-  function calculate() {
-    const capital = parseFloat(document.getElementById('capital').value);
-    const price = parseFloat(document.getElementById('stockPrice').value);
-    const stopLoss = parseFloat(document.getElementById('stopLossPercent').value);
-    const leverage = parseFloat(document.getElementById('leverage').value);
-    const resultsDiv = document.getElementById('results');
+            const savedLeverage = localStorage.getItem('currentLeverage');
+            leverageSelect.value = savedLeverage || '5';
 
-    if (isNaN(capital) || isNaN(price) || capital <= 0 || price <= 0) {
-      resultsDiv.innerHTML = "<p>Please enter valid capital and stock price.</p>";
-      return;
-    }
+            capitalInput.value = localStorage.getItem('defaultCapital') || '10000';
+            priceInput.value = localStorage.getItem('defaultPrice') || '';
+            slInput.value = localStorage.getItem('defaultStopLoss') || '1';
+            targetInput.value = localStorage.getItem('defaultTarget') || '1';
 
-    const buyingPower = capital * leverage;
-    const shares = Math.floor(buyingPower / price);
-    const half1 = Math.ceil(shares / 2);
-    const half2 = Math.floor(shares / 2);
-    const cost = (shares * price).toFixed(2);
-    const stopLossLong = (price * (1 - stopLoss / 100)).toFixed(2);
-   const  targetAtLong = (price * (1 + 2* stopLoss / 100)).toFixed(2);
-    const stopLossShort = (price * (1 + stopLoss / 100)).toFixed(2);
-    const lossLong = ((price - stopLossLong) * shares).toFixed(2);
-    const lossShort = ((stopLossShort - price) * shares).toFixed(2);
+            updateUI();
+        }
 
-    resultsDiv.innerHTML = `
-      <div class="result-group">
-        <div class="result-item"><strong>Shares to Buy:</strong><span>${shares}</span></div>
-        <div class="result-item"><strong>Total Cost:</strong><span>₹${cost}</span></div>
-        <div class="result-item"><strong>Buying Power:</strong><span>₹${buyingPower.toFixed(2)}</span></div>
-      </div>
-      <div class="result-group">
-        <div class="result-item"><strong>Stop Loss (Long):</strong><span>₹${stopLossLong}</span></div>
-        <div class="result-item"><strong>Target for 50% (Long):</strong><span>₹${targetAtLong}</span></div>
-        <div class="result-item">
-  <strong>Split Shares (50% Exit):</strong>
-  <span>${half1} + ${half2}</span>
-</div>
+        function saveAllInputs() {
+            localStorage.setItem('defaultCapital', capitalInput.value);
+            localStorage.setItem('defaultPrice', priceInput.value);
+            localStorage.setItem('defaultStopLoss', slInput.value);
+            localStorage.setItem('defaultTarget', targetInput.value);
+            localStorage.setItem('currentLeverage', leverageSelect.value);
+            localStorage.setItem('tradeHistory', JSON.stringify(trades));
+        }
 
-<br/>
-        <hr/>
-        <br/>
-           
-        <div class="result-item"><strong>Loss at Long Stop:</strong><span>₹${lossLong}</span></div>
-        <div class="result-item"><strong>Stop Loss (Short):</strong><span>₹${stopLossShort}</span></div>
-        <div class="result-item"><strong>Loss at Short Stop:</strong><span>₹${lossShort}</span></div>
-      </div>
-    `;
-  }
+        // ─── Record Trade (with note) ───
+        function recordTrade(type) {
+            const note = noteInput.value.trim();
+            const symbol = type === 'profit' ? '+' : '−';
+            trades.push({ symbol, note });
+            if (trades.length > MAX_TRADES) {
+                trades = trades.slice(-MAX_TRADES);
+            }
+            noteInput.value = ''; // clear note
+            saveAllInputs();
+            updateUI();
+        }
 
-  // Load on start
-  loadTradeData();
-</script>
+        function resetTracker() {
+            trades = [];
+            localStorage.removeItem('tradeHistory');
+            noteInput.value = '';
+            saveAllInputs();
+            updateUI();
+        }
+
+        // ─── Update Trade UI ───
+        function updateUI() {
+            if (trades.length === 0) {
+                historyDiv.innerHTML = `<div class="empty">No trades yet.</div>`;
+                tradeCountSpan.textContent = '0 recorded';
+                return;
+            }
+
+            let entries = trades.map((t) => {
+                const cls = t.symbol === '+' ? 'profit' : 'loss';
+                const label = t.symbol === '+' ? '✓' : '✕';
+                const noteDisplay = t.note ? `<span class="note-text">${t.note}</span>` : '';
+                return `<div class="trade-entry">
+                            <span class="symbol ${cls}">${label}</span>
+                            ${noteDisplay}
+                        </div>`;
+            }).join('');
+
+            const profits = trades.filter(t => t.symbol === '+').length;
+            const losses = trades.filter(t => t.symbol === '−').length;
+
+            historyDiv.innerHTML = `
+                <div class="trade-entries-container">
+                    ${entries}
+                </div>
+                <div class="trade-meta">
+                    <span>+${profits}  −${losses}</span>
+                    <span class="lev-badge">Leverage ${leverageSelect.value}x</span>
+                </div>
+            `;
+
+            tradeCountSpan.textContent = `${trades.length} recorded`;
+        }
+
+        // ─── Calculate ───
+        function calculate() {
+            const capital = parseFloat(capitalInput.value);
+            const price = parseFloat(priceInput.value);
+            const stopLossPct = parseFloat(slInput.value);
+            const targetPct = parseFloat(targetInput.value);
+            const leverage = parseFloat(leverageSelect.value);
+
+            // Save inputs
+            saveAllInputs();
+
+            if (isNaN(capital) || isNaN(price) || capital <= 0 || price <= 0) {
+                resultsDiv.innerHTML = `
+                    <div class="result-empty" style="color:#c98b8b;">
+                        Please enter valid capital and stock price.
+                    </div>
+                `;
+                return;
+            }
+
+            if (isNaN(stopLossPct) || stopLossPct <= 0) {
+                resultsDiv.innerHTML = `
+                    <div class="result-empty" style="color:#c98b8b;">
+                        Please enter a valid stop loss percentage.
+                    </div>
+                `;
+                return;
+            }
+
+            if (isNaN(targetPct) || targetPct <= 0) {
+                resultsDiv.innerHTML = `
+                    <div class="result-empty" style="color:#c98b8b;">
+                        Please enter a valid target percentage.
+                    </div>
+                `;
+                return;
+            }
+
+            const buyingPower = capital * leverage;
+            const shares = Math.floor(buyingPower / price);
+            const cost = shares * price;
+            const stopLossLong = price * (1 - stopLossPct / 100);
+            const targetPrice = price * (1 + targetPct / 100);
+            const lossAmount = (price - stopLossLong) * shares;
+            const profitAmount = (targetPrice - price) * shares;
+
+            // Percentages
+            const returnOnCapital = (profitAmount / capital) * 100;
+            const returnOnRisk = lossAmount !== 0 ? (profitAmount / lossAmount) * 100 : Infinity;
+
+            resultsDiv.innerHTML = `
+                <div class="result-group">
+                    <div class="result-item">
+                        <strong>Shares to Buy</strong>
+                        <span class="value">${shares.toLocaleString()}</span>
+                    </div>
+                    <div class="result-item">
+                        <strong>Stop Loss (Long)</strong>
+                        <span class="value">₹${stopLossLong.toFixed(2)}</span>
+                    </div>
+                    <div class="result-item">
+                        <strong>Target Price</strong>
+                        <span class="value">₹${targetPrice.toFixed(2)}</span>
+                    </div>
+                </div>
+
+                <div class="result-group">
+                    <div class="result-item">
+                        <strong>Total Cost</strong>
+                        <span class="value">₹${cost.toFixed(2)}</span>
+                    </div>
+                    <div class="result-item">
+                        <strong>Buying Power</strong>
+                        <span class="value">₹${buyingPower.toFixed(2)}</span>
+                    </div>
+                    <hr class="result-divider" />
+                    <div class="result-item">
+                        <strong>Loss at Stop</strong>
+                        <span class="value red">−₹${Math.abs(lossAmount).toFixed(2)}</span>
+                    </div>
+                    <div class="result-item">
+                        <strong>Profit at Target</strong>
+                        <span class="value green">+₹${profitAmount.toFixed(2)}</span>
+                    </div>
+                    <div class="result-item" style="margin-top:4px; border-top:1px solid #2a2a2a; padding-top:6px;">
+                        <strong>Return on Capital</strong>
+                        <span class="value">${returnOnCapital.toFixed(2)}%</span>
+                    </div>
+                    <div class="result-item">
+                        <strong>Return on Risk (R:R)</strong>
+                        <span class="value">${lossAmount !== 0 ? returnOnRisk.toFixed(2) + '%' : '∞'}</span>
+                    </div>
+                    <div class="result-item" style="font-size:0.75rem; color:#666; border-top:1px solid #2a2a2a; padding-top:6px; margin-top:4px;">
+                        <span>Risk / Reward</span>
+                        <span>1 : ${(Math.abs(profitAmount) / Math.abs(lossAmount)).toFixed(2)}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function clearResults() {
+            resultsDiv.innerHTML = `<div class="result-empty">Results cleared.</div>`;
+        }
+
+        // ─── Leverage change → save ───
+        leverageSelect.addEventListener('change', () => {
+            saveAllInputs();
+            updateUI();
+        });
+
+        // ─── Auto-save inputs on change ───
+        [capitalInput, priceInput, slInput, targetInput].forEach(el => {
+            el.addEventListener('input', () => {
+                saveAllInputs();
+            });
+        });
+
+        // ─── Enter key triggers calculate ───
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') calculate();
+            });
+        });
+
+        // ─── Init ───
+        loadData();
+
+        if (priceInput.value && parseFloat(priceInput.value) > 0) {
+            calculate();
+        }
+    </script>
 
 </body>
 </html>
