@@ -279,7 +279,6 @@
             padding: 2px 6px;
             border-radius: 4px;
             transition: background 0.15s;
-            user-select: all;
         }
 
         .result-item .value:hover {
@@ -593,22 +592,43 @@
             }, 1500);
         }
 
-        // ─── Copy function ───
+        // ─── Copy function – only number, no selection highlight ───
         function copyToClipboard(element) {
-            const text = element.textContent.trim();
+            // Get the raw value from data-copy attribute if present, else clean text
+            let text = element.getAttribute('data-copy');
+            if (!text) {
+                // fallback: extract number from text (remove ₹, commas, etc.)
+                let raw = element.textContent.trim();
+                // Remove ₹ sign, commas, and any non-numeric chars except decimal
+                let match = raw.replace(/[₹,]/g, '').trim();
+                // If it contains a space (like "50 / 51"), keep as is
+                if (match.includes('/')) {
+                    text = match;
+                } else {
+                    // Extract first number (including decimal)
+                    let numMatch = match.match(/^[\d.]+/);
+                    text = numMatch ? numMatch[0] : match;
+                }
+            }
             if (!text) return;
+
             navigator.clipboard.writeText(text).then(() => {
                 showToast('Copied: ' + text);
             }).catch(() => {
-                // fallback
-                const range = document.createRange();
-                range.selectNode(element);
-                window.getSelection().removeAllRanges();
-                window.getSelection().addRange(range);
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
                 document.execCommand('copy');
-                window.getSelection().removeAllRanges();
+                document.body.removeChild(textarea);
                 showToast('Copied: ' + text);
             });
+
+            // Clear any text selection that might have occurred
+            if (window.getSelection) {
+                window.getSelection().removeAllRanges();
+            }
         }
 
         // ─── State ───
@@ -754,29 +774,34 @@
 
             // Split quantity into two equal parts
             const half1 = Math.floor(shares / 2);
-            const half2 = shares - half1; // gives ceil for odd numbers
+            const half2 = shares - half1;
 
             // Percentages
             const returnOnCapital = (profitAmount / capital) * 100;
             const returnOnRisk = lossAmount !== 0 ? (profitAmount / lossAmount) * 100 : Infinity;
 
+            const sharesStr = shares.toLocaleString();
+            const splitStr = `${half1} / ${half2}`;
+            const stopStr = stopLossLong.toFixed(2);
+            const targetStr = targetPrice.toFixed(2);
+
             resultsDiv.innerHTML = `
                 <div class="result-group">
                     <div class="result-item">
                         <strong>Shares to Buy</strong>
-                        <span class="value" onclick="copyToClipboard(this)">${shares.toLocaleString()}</span>
+                        <span class="value" data-copy="${shares}" onclick="copyToClipboard(this)">${sharesStr}</span>
                     </div>
                     <div class="result-item">
                         <strong>Split Quantity</strong>
-                        <span class="value" onclick="copyToClipboard(this)">${half1} / ${half2}</span>
+                        <span class="value" data-copy="${half1} / ${half2}" onclick="copyToClipboard(this)">${splitStr}</span>
                     </div>
                     <div class="result-item">
                         <strong>Stop Loss (Long)</strong>
-                        <span class="value" onclick="copyToClipboard(this)">₹${stopLossLong.toFixed(2)}</span>
+                        <span class="value" data-copy="${stopStr}" onclick="copyToClipboard(this)">₹${stopStr}</span>
                     </div>
                     <div class="result-item">
                         <strong>Target Price</strong>
-                        <span class="value" onclick="copyToClipboard(this)">₹${targetPrice.toFixed(2)}</span>
+                        <span class="value" data-copy="${targetStr}" onclick="copyToClipboard(this)">₹${targetStr}</span>
                     </div>
                 </div>
 
