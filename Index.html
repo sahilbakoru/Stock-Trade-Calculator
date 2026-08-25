@@ -275,6 +275,19 @@
         .result-item .value {
             font-weight: 500;
             color: #e8e8e8;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: background 0.15s;
+            user-select: all;
+        }
+
+        .result-item .value:hover {
+            background: #2a2a2a;
+        }
+
+        .result-item .value:active {
+            background: #3a3a3a;
         }
 
         .result-item .value.green {
@@ -296,6 +309,28 @@
             font-size: 0.9rem;
             text-align: center;
             padding: 20px 0 10px;
+        }
+
+        /* ── Toast / Copy feedback ── */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2a2a2a;
+            color: #e0e0e0;
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: 1px solid #444;
+            font-size: 0.85rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 999;
+        }
+
+        .toast.show {
+            opacity: 1;
         }
 
         /* ── Trade History ── */
@@ -436,6 +471,9 @@
 
     <div class="app-wrapper">
 
+        <!-- Toast notification -->
+        <div class="toast" id="toast">Copied!</div>
+
         <!-- Grid -->
         <div class="grid">
 
@@ -543,6 +581,36 @@
     </div><!-- /app-wrapper -->
 
     <script>
+        // ─── Toast ───
+        const toastEl = document.getElementById('toast');
+
+        function showToast(msg) {
+            toastEl.textContent = msg;
+            toastEl.classList.add('show');
+            clearTimeout(toastEl._hideTimer);
+            toastEl._hideTimer = setTimeout(() => {
+                toastEl.classList.remove('show');
+            }, 1500);
+        }
+
+        // ─── Copy function ───
+        function copyToClipboard(element) {
+            const text = element.textContent.trim();
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Copied: ' + text);
+            }).catch(() => {
+                // fallback
+                const range = document.createRange();
+                range.selectNode(element);
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+                document.execCommand('copy');
+                window.getSelection().removeAllRanges();
+                showToast('Copied: ' + text);
+            });
+        }
+
         // ─── State ───
         let trades = []; // array of {symbol: '+' or '−', note: string}
         const MAX_TRADES = 5;
@@ -684,6 +752,10 @@
             const lossAmount = (price - stopLossLong) * shares;
             const profitAmount = (targetPrice - price) * shares;
 
+            // Split quantity into two equal parts
+            const half1 = Math.floor(shares / 2);
+            const half2 = shares - half1; // gives ceil for odd numbers
+
             // Percentages
             const returnOnCapital = (profitAmount / capital) * 100;
             const returnOnRisk = lossAmount !== 0 ? (profitAmount / lossAmount) * 100 : Infinity;
@@ -692,15 +764,19 @@
                 <div class="result-group">
                     <div class="result-item">
                         <strong>Shares to Buy</strong>
-                        <span class="value">${shares.toLocaleString()}</span>
+                        <span class="value" onclick="copyToClipboard(this)">${shares.toLocaleString()}</span>
+                    </div>
+                    <div class="result-item">
+                        <strong>Split Quantity</strong>
+                        <span class="value" onclick="copyToClipboard(this)">${half1} / ${half2}</span>
                     </div>
                     <div class="result-item">
                         <strong>Stop Loss (Long)</strong>
-                        <span class="value">₹${stopLossLong.toFixed(2)}</span>
+                        <span class="value" onclick="copyToClipboard(this)">₹${stopLossLong.toFixed(2)}</span>
                     </div>
                     <div class="result-item">
                         <strong>Target Price</strong>
-                        <span class="value">₹${targetPrice.toFixed(2)}</span>
+                        <span class="value" onclick="copyToClipboard(this)">₹${targetPrice.toFixed(2)}</span>
                     </div>
                 </div>
 
