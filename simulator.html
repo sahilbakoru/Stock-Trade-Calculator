@@ -14,7 +14,7 @@
   body{margin:0;padding:26px 16px 48px;background:var(--bg);color:var(--text);
     font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
   .app{max-width:1000px;margin:0 auto}
-  header{margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  header{margin-bottom:18px}
   h1{font-size:25px;letter-spacing:-.7px;margin:0 0 4px}
   .sub{margin:0;color:var(--muted)}
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:18px;margin-bottom:15px}
@@ -38,16 +38,26 @@
   button{font:inherit;cursor:pointer}
   .action{height:32px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:white;font-size:12px;color:var(--text)}
   .action:hover{background:#f7f8f8}
-  .page-link{display:inline-flex;align-items:center;height:32px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:white;color:var(--text);font-size:12px;text-decoration:none}
-  .page-link:hover{background:#f7f8f8}
+  .page-link{display:inline-flex;align-items:center;text-decoration:none}
   .trade-grid{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:7px}
   .trade{height:48px;border:1px solid var(--line);border-radius:6px;background:var(--empty);color:#687078;font-size:12px;font-weight:650}
   .trade.win{background:var(--green);border-color:var(--green);color:#fff}
   .trade.loss{background:var(--red);border-color:var(--red);color:#fff}
   .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;color:var(--muted);font-size:12px}
   .dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+  .view-tabs{display:flex;gap:6px;margin:-2px 0 13px}
+  .view-tab{height:32px;padding:0 13px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--muted);font-size:12px}
+  .view-tab.active{background:#202428;border-color:#202428;color:#fff}
+  .view-panel[hidden]{display:none}
   .table-wrap{overflow-x:auto}
   table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:12px}
+  .chart-wrap{width:100%;height:270px;position:relative}
+  #balanceChart{width:100%;height:100%;display:block;overflow:visible}
+  .chart-empty{height:220px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px}
+  .chart-legend{display:flex;gap:15px;flex-wrap:wrap;margin-top:9px;color:var(--muted);font-size:11px}
+  .chart-legend span{display:flex;align-items:center;gap:6px}
+  .chart-key{width:16px;height:2px;background:var(--green);display:inline-block}
+  .chart-key.start{background:#9aa1a7}
   th,td{text-align:right;padding:10px 9px;border-bottom:1px solid #edf0f1;font-variant-numeric:tabular-nums}
   th{color:var(--muted);font-size:11px;font-weight:650;background:#fafbfb}
   th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
@@ -64,11 +74,9 @@
 <body>
 <main class="app">
   <header>
-    <div>
-      <h1>Trade Simulator</h1>
+    <h1>Trade Simulator</h1>
     <p class="sub">Record each trade and track your capital as results compound.</p>
-    </div>
-    <a class="page-link" href="Index.html">Back to Calculator</a>
+    <a class="action page-link" href="Index.html">Back to Calculator</a>
   </header>
 
   <section class="panel">
@@ -122,12 +130,24 @@
   </section>
 
   <section class="panel">
-    <h2 class="section-title">Trade history</h2>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Trade</th><th>Result</th><th>Leverage</th><th>Capital before</th><th>Trade P/L</th><th>Capital after</th></tr></thead>
-        <tbody id="tradeRows"><tr><td colspan="6" class="empty-row">No trades recorded yet.</td></tr></tbody>
-      </table>
+    <div class="grid-head">
+      <h2 class="section-title">Trade history</h2>
+      <div class="view-tabs" role="tablist" aria-label="Trade history view">
+        <button class="view-tab active" id="tableTab" type="button" role="tab" aria-selected="true">Table</button>
+        <button class="view-tab" id="chartTab" type="button" role="tab" aria-selected="false">Chart</button>
+      </div>
+    </div>
+    <div id="tableView" class="view-panel">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Trade</th><th>Result</th><th>Leverage</th><th>Capital before</th><th>Trade P/L</th><th>Capital after</th></tr></thead>
+          <tbody id="tradeRows"><tr><td colspan="6" class="empty-row">No trades recorded yet.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="chartView" class="view-panel" hidden>
+      <div id="chartContent" class="chart-wrap"><div class="chart-empty">Record trades to see your capital curve.</div></div>
+      <div class="chart-legend"><span><i class="chart-key"></i>Capital after each trade</span><span><i class="chart-key start"></i>Starting capital</span></div>
     </div>
     <p class="note">Trades are calculated in box order (1 to 30). The capital after each trade becomes the capital before the next recorded trade.</p>
   </section>
@@ -206,7 +226,46 @@
         tbody.appendChild(tr);
       });
     }
+    drawChart(starting, rows);
     return {wins, losses};
+  }
+
+  function drawChart(starting, rows) {
+    const container = $('chartContent');
+    if (!rows.length) {
+      container.innerHTML = '<div class="chart-empty">Record trades to see your capital curve.</div>';
+      return;
+    }
+    const values = [starting, ...rows.map(row => row.after)];
+    const width = 900, height = 260, left = 76, right = 18, top = 18, bottom = 38;
+    const minValue = Math.min(...values), maxValue = Math.max(...values);
+    const spread = maxValue - minValue;
+    const pad = spread === 0 ? Math.max(Math.abs(maxValue) * 0.05, 1) : spread * 0.16;
+    const low = Math.max(0, minValue - pad), high = maxValue + pad;
+    const x = i => left + (values.length === 1 ? 0 : i * (width-left-right)/(values.length-1));
+    const y = v => top + (high-v) * (height-top-bottom)/(high-low || 1);
+    const points = values.map((v,i) => `${x(i)},${y(v)}`).join(' ');
+    const baseY = height-bottom;
+    const area = `${x(0)},${baseY} ${points} ${x(values.length-1)},${baseY}`;
+    const ticks = 4;
+    let grid = '';
+    for (let i=0;i<=ticks;i++) {
+      const value = high - (high-low)*i/ticks;
+      const yy = y(value);
+      grid += `<line x1="${left}" y1="${yy}" x2="${width-right}" y2="${yy}" stroke="#e8ebed" stroke-width="1"/>`;
+      grid += `<text x="${left-10}" y="${yy+4}" text-anchor="end" fill="#737980" font-size="11">${shortMoney(value)}</text>`;
+    }
+    const dots = values.map((v,i) => `<circle cx="${x(i)}" cy="${y(v)}" r="${i===0?4:3.5}" fill="${i===0?'#9aa1a7':'#16834b'}" stroke="#fff" stroke-width="1.5"><title>${i===0?'Starting capital':`After trade ${rows[i-1].index}`}: ${money(v)}</title></circle>`).join('');
+    const xLabels = `<text x="${left}" y="${height-10}" fill="#737980" font-size="11">Start</text><text x="${width-right}" y="${height-10}" text-anchor="end" fill="#737980" font-size="11">Trade ${rows[rows.length-1].index}</text>`;
+    container.innerHTML = `<svg id="balanceChart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Capital growth chart"><defs><linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#16834b" stop-opacity=".16"/><stop offset="100%" stop-color="#16834b" stop-opacity="0"/></linearGradient></defs>${grid}<polygon points="${area}" fill="url(#areaFill)"/><polyline points="${points}" fill="none" stroke="#16834b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${dots}${xLabels}</svg>`;
+  }
+
+  function shortMoney(value) {
+    const abs = Math.abs(value);
+    if (abs >= 10000000) return `₹${(value/10000000).toFixed(1)}Cr`;
+    if (abs >= 100000) return `₹${(value/100000).toFixed(1)}L`;
+    if (abs >= 1000) return `₹${(value/1000).toFixed(0)}k`;
+    return `₹${value.toFixed(0)}`;
   }
 
   function renderGrid() {
@@ -230,6 +289,18 @@
     });
   }
   function render(){ renderGrid(); calculate(); }
+
+  function setHistoryView(view) {
+    const tableActive = view === 'table';
+    $('tableView').hidden = !tableActive;
+    $('chartView').hidden = tableActive;
+    $('tableTab').classList.toggle('active', tableActive);
+    $('chartTab').classList.toggle('active', !tableActive);
+    $('tableTab').setAttribute('aria-selected', String(tableActive));
+    $('chartTab').setAttribute('aria-selected', String(!tableActive));
+  }
+  $('tableTab').addEventListener('click', () => setHistoryView('table'));
+  $('chartTab').addEventListener('click', () => setHistoryView('chart'));
 
   $('capital').addEventListener('input', calculate);
   $('clearAll').addEventListener('click', () => { trades.fill(null); render(); });
